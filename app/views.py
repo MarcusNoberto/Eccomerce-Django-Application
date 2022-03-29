@@ -2,55 +2,40 @@ from django.shortcuts import render
 from django.http import JsonResponse
 import json
 import datetime
-from .models import *
-
+from .models import * 
+from .utils import cookieCart, cartData, guestOrder
 
 def store(request):
-    if request.user.is_authenticated:
-        customer = request.user.customer
-        order, created = Order.objects.get_or_create(customer=customer, complete=False)
-        items = order.orderitem_set.all()
-        cartItems = order.get_cart_items
+	data = cartData(request)
 
-    else:
-        items = []
-        order = {'get_cart_total': 0, 'get_cart_item': 0, 'shipping': False}
-        cartItems = order['get_cart_item']
-    products = Product.objects.all()
-    context = {'products': products, 'cartItems' : cartItems}
-    return render(request, 'store/store.html', context)
+	cartItems = data['cartItems']
+	order = data['order']
+	items = data['items']
+
+	products = Product.objects.all()
+	context = {'products':products, 'cartItems':cartItems}
+	return render(request, 'store.html', context)
+
 
 def cart(request):
-    if request.user.is_authenticated:
-        customer = request.user.customer
-        order, created = Order.objects.get_or_create(customer=customer, complete=False)
-        items = order.orderitem_set.all()
-        cartItems = order.get_cart_items
+	data = cartData(request)
 
-    else:
-        items = []
-        order = {'get_cart_total': 0, 'get_cart_item': 0, 'shipping': False}
-        cartItems = order['get_cart_item']
-    context = {'items': items, 'order': order, 'cartItems': cartItems}
-    return render(request, 'store/cart.html', context)
+	cartItems = data['cartItems']
+	order = data['order']
+	items = data['items']
+
+	context = {'items':items, 'order':order, 'cartItems':cartItems}
+	return render(request, 'cart.html', context)
 
 def checkout(request):
-    if request.user.is_authenticated:
-        customer = request.user.customer
-        order, created = Order.objects.get_or_create(customer=customer, complete=False)
-        items = order.orderitem_set.all()
-        cartItems = order.get_cart_items
-    else:
-        items = []
-        order = {'get_cart_total': 0, 'get_cart_item': 0, 'shipping': False}
-        cartItems = order['get_cart_item']
+	data = cartData(request)
+	
+	cartItems = data['cartItems']
+	order = data['order']
+	items = data['items']
 
-    context = {'items': items, 'order': order, 'cartItems': cartItems}
-    return render(request, 'store/checkout.html', context)
-
-def home(request):
-    context = {}
-    return render(request, 'store/main.html', context)
+	context = {'items':items, 'order':order, 'cartItems':cartItems}
+	return render(request, 'checkout.html', context)
 
 def updateItem(request):
 	data = json.loads(request.body)
